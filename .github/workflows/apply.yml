@@ -1,0 +1,72 @@
+name: Apply
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.get_related_pull_request.outputs.repository.mergeQueue.entries.nodes[0].pullRequest.number }}
+    steps:
+      - uses: aquaproj/aqua-installer@v3.0.1
+        with:
+          aqua_version: v2.28.0
+      - uses: octokit/graphql-action@v2.x
+        id: get_related_pull_request
+        with:
+          query: |
+            query($owner: String!, $name: String!, $number: Int!) {
+              repository(owner: $owner, name: $name) {
+                mergeQueue(branch: "main") {
+                  entries(last: 1) {
+                    nodes {
+                      pullRequest {
+                        number
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            owner: ${{ github.repository_owner }}
+            name: ${{ github.event.repository.name }}
+      - run: "terraform init"
+      - run: "terraform plan -out plan.tfplan"
+      - run: "tfcmt --out plan.md plan -- terraform show plan.tfplan"
+      - id: plan-md-content
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: plan.md
+      - uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            # Plan for merge queue
+
+            This is the plan for the merge queue. If you approve this plan, the changes will be applied.
+            Please review the plan and approve it by [Action Page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+            ---
+
+            ${{ steps.plan-md-content.outputs.content }}
+          pr_number: ${{ steps.get_related_pull_request.outputs.repository.mergeQueue.entries.nodes[0].pullRequest.number }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan
+          path: plan.tfplan
+
+  apply:
+    runs-on: ubuntu-latest
+    environment: apply
+    needs: plan
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: plan
+          path: plan.tfplan
+      - run: "tfcmt --pr ${{ needs.plan.outputs.pr_number }} apply -- terraform apply --auto-approve plan.tfplan"
