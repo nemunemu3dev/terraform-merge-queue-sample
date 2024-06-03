@@ -17,3 +17,5 @@ jobs:
       - run: "terraform init"
       - run: "terraform plan -out plan.tfplan"
       - run: "tfcmt plan -- terraform show plan.tfplan"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
