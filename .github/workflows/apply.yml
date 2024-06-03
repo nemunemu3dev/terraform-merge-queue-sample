@@ -13,6 +13,7 @@ jobs:
     outputs:
       pr_number: ${{ steps.get_related_pull_request.outputs.repository.mergeQueue.entries.nodes[0].pullRequest.number }}
     steps:
+      - uses: actions/checkout@v4
       - uses: aquaproj/aqua-installer@v3.0.1
         with:
           aqua_version: v2.28.0
@@ -65,6 +66,7 @@ jobs:
     environment: apply
     needs: plan
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: plan
