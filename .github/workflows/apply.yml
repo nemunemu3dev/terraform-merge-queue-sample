@@ -43,7 +43,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
       - run: "terraform init"
       - run: "terraform plan -out plan.tfplan"
-      - run: "tfcmt --out plan.md plan -- terraform show plan.tfplan"
+      - run: "tfcmt --output plan.md plan -- terraform show plan.tfplan"
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - id: plan-md-content
