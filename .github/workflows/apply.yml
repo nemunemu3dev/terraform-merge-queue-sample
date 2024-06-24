@@ -60,7 +60,7 @@ jobs:
             const fs = require('fs');
             const markdown = fs.readFileSync('plan.md', 'utf8');
             await core.summary
-              .addHeader('Plan for merge queue')
+              .addHeading('Terraform Plan')
               .addRaw(markdown)
               .write();
 
