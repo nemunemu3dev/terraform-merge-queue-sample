@@ -43,7 +43,7 @@ jobs:
             name: ${{ github.event.repository.name }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - run: "echo ${{ steps.get_related_pull_request.outputs.data }}"
+      - run: "echo '${{ steps.get_related_pull_request.outputs.data }}'"
       - run: "terraform init"
       - run: "terraform plan -out plan.tfplan"
       - run: "tfcmt --output plan.md plan -- terraform show plan.tfplan"
