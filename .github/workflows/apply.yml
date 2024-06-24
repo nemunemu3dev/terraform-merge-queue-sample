@@ -9,7 +9,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  plan:
+  terraform_plan:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'merge_group' }}
     outputs:
@@ -39,6 +39,8 @@ jobs:
           variables: |
             owner: ${{ github.repository_owner }}
             name: ${{ github.event.repository.name }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - run: "terraform init"
       - run: "terraform plan -out plan.tfplan"
       - run: "tfcmt --out plan.md plan -- terraform show plan.tfplan"
@@ -65,10 +67,10 @@ jobs:
           name: plan
           path: plan.tfplan
 
-  apply:
+  terraform_apply:
     runs-on: ubuntu-latest
     environment: apply
-    needs: plan
+    needs: terraform_plan
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
