@@ -23,7 +23,7 @@ jobs:
         id: get_related_pull_request
         with:
           query: |
-            query($owner: String!, $name: String!, $number: Int!) {
+            query($owner: String!, $name: String!) {
               repository(owner: $owner, name: $name) {
                 mergeQueue(branch: "main") {
                   entries(last: 1) {
