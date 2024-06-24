@@ -1,6 +1,7 @@
 name: Apply
 
 on:
+  pull_request:
   merge_group:
     types: [checks_requested]
 
@@ -10,6 +11,7 @@ permissions:
 jobs:
   plan:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'merge_group' }}
     outputs:
       pr_number: ${{ steps.get_related_pull_request.outputs.repository.mergeQueue.entries.nodes[0].pullRequest.number }}
     steps:
