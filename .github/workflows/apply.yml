@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'merge_group' }}
     outputs:
-      pr_number: ${{ steps.get_related_pull_request.outputs.repository.mergeQueue.entries.nodes[0].pullRequest.number }}
+      pr_number: ${{ fromJson(steps.get_related_pull_request.outputs.data).repository.mergeQueue.entries.nodes[0].pullRequest.number }}
     steps:
       - uses: actions/checkout@v4
       - uses: aquaproj/aqua-installer@v3.0.1
@@ -60,7 +60,6 @@ jobs:
             const fs = require('fs');
             const markdown = fs.readFileSync('plan.md', 'utf8');
             await core.summary
-              .addHeading('Terraform Plan')
               .addRaw(markdown)
               .write();
 
@@ -94,6 +93,6 @@ jobs:
         with:
           name: plan
           path: plan.tfplan
-      - run: "tfcmt --pr ${{ needs.plan.outputs.pr_number }} apply -- terraform apply --auto-approve plan.tfplan"
+      - run: "tfcmt --pr ${{ needs.terraform_plan.outputs.pr_number }} apply -- terraform apply --auto-approve plan.tfplan"
         env:
           GITHUB_TOKEN: ${{ github.token }}
