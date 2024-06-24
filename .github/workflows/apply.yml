@@ -43,6 +43,7 @@ jobs:
             name: ${{ github.event.repository.name }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      - run: "echo ${{ steps.get_related_pull_request.outputs.data }}"
       - run: "terraform init"
       - run: "terraform plan -out plan.tfplan"
       - run: "tfcmt --output plan.md plan -- terraform show plan.tfplan"
@@ -63,7 +64,7 @@ jobs:
             ---
 
             ${{ steps.plan-md-content.outputs.content }}
-          pr_number: ${{ steps.get_related_pull_request.outputs.repository.mergeQueue.entries.nodes[0].pullRequest.number }}
+          pr_number: ${{ fromJSON(steps.get_related_pull_request.outputs.data).repository.mergeQueue.entries.nodes[0].pullRequest.number }}
       - uses: actions/upload-artifact@v4
         with:
           name: plan
