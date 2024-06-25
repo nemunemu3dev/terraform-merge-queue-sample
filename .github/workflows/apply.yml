@@ -50,31 +50,36 @@ jobs:
       - run: "tfcmt --output plan.md plan -- terraform show plan.tfplan"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - id: plan-md-content
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: plan.md
+
       - uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const markdown = fs.readFileSync('plan.md', 'utf8');
+
+            const comment = `# Plan for merge queue
+
+            If you approved the deployment at [Action Page](${process.env.ACTION_PAGE_URL}), this plan will be applied automatically.
+
+            ---
+
+            ${markdown}
+            `;
+
             await core.summary
               .addRaw(markdown)
               .write();
 
-      - uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: |
-            # Plan for merge queue
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: process.env.PR_NUMBER,
+              body: comment,
+            });
+        env:
+          ACTION_PAGE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_NUMBER: ${{ fromJSON(steps.get_related_pull_request.outputs.data).repository.mergeQueue.entries.nodes[0].pullRequest.number }}
 
-            This is the plan for the merge queue. If you approve this plan, the changes will be applied.
-            Please review the plan and approve it by [Action Page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
-
-            ---
-
-            ${{ steps.plan-md-content.outputs.content }}
-          pr_number: ${{ fromJSON(steps.get_related_pull_request.outputs.data).repository.mergeQueue.entries.nodes[0].pullRequest.number }}
       - uses: actions/upload-artifact@v4
         with:
           name: plan
