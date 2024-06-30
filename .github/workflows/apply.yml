@@ -1,7 +1,6 @@
 name: Apply
 
 on:
-  pull_request:
   merge_group:
     types: [checks_requested]
 
@@ -14,7 +13,6 @@ permissions:
 jobs:
   terraform_plan:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'merge_group' }}
     outputs:
       pr_number: ${{ fromJson(steps.get_related_pull_request.outputs.data).repository.mergeQueue.entries.nodes[0].pullRequest.number }}
     steps:
